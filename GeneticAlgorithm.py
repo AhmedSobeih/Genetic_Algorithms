@@ -58,16 +58,17 @@ def graytoBinary(gray):
  
     return binary;
 
+def add_missing_zeros(member): #to make all members have the same size (length = 10) that is '0b' + 8 binary bits
+      missing_number_of_zeros = 10 - len(member) #0b00000100 initially 0b100 so we need 5 zeros after 0b
+      missing_zeros = "0"*missing_number_of_zeros
+      member = member[0:2] + missing_zeros + member[2:]
+      return member
+def convert_to_8_bits(pop):
+   
+    pop = list(map(add_missing_zeros,pop)) #for each member, add the missing zeros to make it in format 0bxxxxxxxx
+    return pop
 def initialize_new_population(functionNum, pop_size=8, gray_coding=True):
     if (functionNum==1):
-        def convert_to_8_bits(pop):
-            def add_missing_zeros(member): #to make all members have the same size (length = 10) that is '0b' + 8 binary bits
-                missing_number_of_zeros = 10 - len(member) #0b00000100 initially 0b100 so we need 5 zeros after 0b
-                missing_zeros = "0"*missing_number_of_zeros
-                member = member[0:2] + missing_zeros + member[2:]
-                return member
-            pop = list(map(add_missing_zeros,pop)) #for each member, add the missing zeros to make it in format 0bxxxxxxxx
-            return pop
         pop = random.sample(range(0, 255), pop_size) #initialize population with population size with 0 <= members <=255 
         print(pop)
         pop = list(map(bin,pop))
@@ -78,6 +79,7 @@ def initialize_new_population(functionNum, pop_size=8, gray_coding=True):
         pop = np.random.uniform(low=-5, high=5, size=(pop_size,2))
         
     return pop
+
 
 
 def calculate_fitness_for_population(functionNum, pop, gray_coded=True):
@@ -143,12 +145,15 @@ def crossover_one_point(parents,offspring_size=4):
         offsprings.append(offspring2)
     return np.array(offsprings)
 
-def repair(x, min=0, max=255):
-    x_integer = int(graytoBinary(x),2)
+def repair(x, min=0, max=255 , gray_coded=True):
+    if gray_coded:
+        x = graytoBinary(x)
+    x_integer = int(x,2)
     if x_integer>255: 
-        return binarytoGray(bin(255))
-    #not checking if x is less than 0 because a binary representation is assumed to be always positive
-    return x
+            return binarytoGray(bin(255)) if gray_coded else bin(255)
+    elif x_integer<0:
+            return add_missing_zeros(binarytoGray(bin(0))) if gray_coded else add_missing_zeros(bin(0))
+    return binarytoGray(x) if gray_coded else x
 
 def mutation(functionNum, pop, probability):
     #doing mutation with 1% probability (can be changed)
@@ -171,30 +176,50 @@ def mutation(functionNum, pop, probability):
 
 
 
+def binaryPopulationToInt(pop, gray_coded=True):
+    if gray_coded:
+        pop = list(map(graytoBinary, pop))
+    
+    def binary_to_int(binary):
+        return int(binary,2)
+    
+    return list(map(binary_to_int, pop))
+
+
 generations = range(0,50)
 
-seond_function_pop = new_pop_after_mutation = initialize_new_population(2)
+function_num = 1 #objective function
+pop = new_pop_after_mutation = initialize_new_population(function_num)
 # note that here new_pop_after_mutation is also initialized to ease printing in the first generation
 
 best_fitnesses = []
 for i in generations:
     print("Generation Number:", i)
-    print("Population:", seond_function_pop)
-    fitness = calculate_fitness_for_population(2,new_pop_after_mutation)
+    print("Population:", pop)
+    fitness = calculate_fitness_for_population(function_num,pop)
     print("Best Fitness:", np.max(fitness))
     best_fitnesses.append(np.max(fitness))
-    parents = select_mating_pool(seond_function_pop, fitness, 4)
+    parents = select_mating_pool(pop, fitness, 4)
     print("Parents:", parents)
-    children = crossover_fifty_precent(2,parents)
+    #parents_int = binaryPopulationToInt(parents, gray_coded=True)
+    #print("ParentsInteger:", parents_int)
+    children = crossover_fifty_precent(function_num,parents)
     print("Children:", children)
     new_pop_after_crossover = np.concatenate((parents, children))
     print("New Population After Crosover:", new_pop_after_crossover)
-    new_pop_after_mutation = mutation(2,new_pop_after_crossover,0.0001)
+    #new_pop_after_crossover_int = binaryPopulationToInt(new_pop_after_crossover, gray_coded=True)
+    #print("New Population After Crosover Integer:", new_pop_after_crossover_int)
+    new_pop_after_mutation = mutation(function_num, new_pop_after_crossover, 0.01) 
     print("New Population After Mutation:", new_pop_after_mutation)
+    #new_pop_after_mutation_int = binaryPopulationToInt(new_pop_after_mutation, gray_coded=True)
+    #print("New Population After Mutation Integer:", new_pop_after_mutation_int)
+    
+    #repair after mutation
+    pop = list(map(repair, new_pop_after_mutation)) if function_num==1 else new_pop_after_mutation
+    
+
 
 plt.title("Fitnesses")
 plt.plot(generations, best_fitnesses, color="red")
 
 plt.show()
-
-#print(int(graytoBinary( repair(binarytoGray(bin(3000)))),2))
