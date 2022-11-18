@@ -69,14 +69,14 @@ def convert_to_8_bits(pop):
     return pop
 
 
-def initialize_new_population(function_num, pop_size=8, gray_coding=True):
+def initialize_new_population(function_num, pop_size=8, gray_coded=True):
     if function_num == 1:
         # initialize population with population size with 0 <= members <=255
         pop = random.sample(range(0, 255), pop_size)
         print(pop)
         pop = list(map(bin, pop))
         pop = convert_to_8_bits(pop)
-        if gray_coding:
+        if gray_coded:
             pop = list(map(binarytoGray, pop))
 
     elif function_num == 2:
@@ -158,7 +158,7 @@ def crossover_one_point(parents, offspring_size=4):
     return np.array(offsprings)
 
 
-def repair(function_num, pop):
+def repair(function_num, pop, gray_coded=True):
     def first_function_repair(x, gray_coded=True):
         if gray_coded:
             x = graytoBinary(x)
@@ -178,7 +178,7 @@ def repair(function_num, pop):
                 x[i] = -5
         return x
     if function_num == 1:
-        repaired = list(map(first_function_repair, pop))
+        repaired = list(map(lambda p: first_function_repair(p, gray_coded), pop))
     elif function_num == 2:
         repaired = list(map(second_function_repair, pop))
     return repaired
@@ -219,14 +219,14 @@ def binaryPopulationToInt(pop, gray_coded=True):
 for function_num in range(1, 3):
     # applying GA for objective function 1 and 2
         generations = range(0, 200)
-        pop = new_pop_after_mutation = initialize_new_population(function_num)
+        pop = new_pop_after_mutation = initialize_new_population(function_num, gray_coded=True) #gray_coded is only for first objectiv function
         # note that here new_pop_after_mutation is also initialized to ease printing in the first generation
 
         best_fitnesses = []
         for i in generations:
             print("Generation Number:", i)
             print("Population:", pop)
-            fitness = calculate_fitness_for_population(function_num, pop)
+            fitness = calculate_fitness_for_population(function_num, pop, gray_coded=True)
             print("Best Fitness:", np.max(fitness))
             if function_num == 1:
                 best_fitnesses.append(np.max(fitness))
@@ -249,7 +249,7 @@ for function_num in range(1, 3):
             # print("New Population After Mutation Integer:", new_pop_after_mutation_int)
 
             # repair after mutation
-            pop = repair(function_num, new_pop_after_mutation)
+            pop = repair(function_num, new_pop_after_mutation , gray_coded=True)#gray_coded is only for first objectiv function
 
         plt.title("Fitness of function number : {}".format(function_num))
         plt.plot(generations, best_fitnesses, color="red")
