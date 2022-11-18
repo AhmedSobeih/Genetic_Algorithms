@@ -170,7 +170,7 @@ def repair(function_num, pop):
         return binarytoGray(x) if gray_coded else x
 
     def second_function_repair(x):
-        #if x or y are out of range then bring them back to the range(-5,5)
+        #  if x or y are out of range then bring them back to the range(-5,5)
         for i in range(x.shape[0]):
             if x[i] > 5:
                 x[i] = 5
@@ -216,41 +216,41 @@ def binaryPopulationToInt(pop, gray_coded=True):
     return list(map(binary_to_int, pop))
 
 
-generations = range(0, 200)
+for function_num in range(1, 3):
+    # applying GA for objective function 1 and 2
+        generations = range(0, 200)
+        pop = new_pop_after_mutation = initialize_new_population(function_num)
+        # note that here new_pop_after_mutation is also initialized to ease printing in the first generation
 
-function_num = 2  # objective function
-pop = new_pop_after_mutation = initialize_new_population(function_num)
-# note that here new_pop_after_mutation is also initialized to ease printing in the first generation
+        best_fitnesses = []
+        for i in generations:
+            print("Generation Number:", i)
+            print("Population:", pop)
+            fitness = calculate_fitness_for_population(function_num, pop)
+            print("Best Fitness:", np.max(fitness))
+            if function_num == 1:
+                best_fitnesses.append(np.max(fitness))
+            elif function_num == 2:
+                # for second objective function we take the negative as we want to calculate global minimum not maximum
+                best_fitnesses.append(-1*np.max(fitness))
+            parents = select_mating_pool(pop, fitness, 4)
+            print("Parents:", parents)
+            # parents_int = binaryPopulationToInt(parents, gray_coded=True)
+            # print("ParentsInteger:", parents_int)
+            children = crossover_fifty_percent(function_num, parents)
+            print("Children:", children)
+            new_pop_after_crossover = np.concatenate((parents, children))
+            print("New Population After Cross over:", new_pop_after_crossover)
+            # new_pop_after_crossover_int = binaryPopulationToInt(new_pop_after_crossover, gray_coded=True)
+            # print("New Population After Crossover Integer:", new_pop_after_crossover_int)
+            new_pop_after_mutation = mutation(function_num, new_pop_after_crossover, 0.01)
+            print("New Population After Mutation:", new_pop_after_mutation)
+            # new_pop_after_mutation_int = binaryPopulationToInt(new_pop_after_mutation, gray_coded=True)
+            # print("New Population After Mutation Integer:", new_pop_after_mutation_int)
 
-best_fitnesses = []
-for i in generations:
-    print("Generation Number:", i)
-    print("Population:", pop)
-    fitness = calculate_fitness_for_population(function_num, pop)
-    print("Best Fitness:", np.max(fitness))
-    if function_num == 1:
-        best_fitnesses.append(np.max(fitness))
-    elif function_num == 2:
-        best_fitnesses.append(-1*np.max(fitness))
-    parents = select_mating_pool(pop, fitness, 4)
-    print("Parents:", parents)
-    # parents_int = binaryPopulationToInt(parents, gray_coded=True)
-    # print("ParentsInteger:", parents_int)
-    children = crossover_fifty_percent(function_num, parents)
-    print("Children:", children)
-    new_pop_after_crossover = np.concatenate((parents, children))
-    print("New Population After Cross over:", new_pop_after_crossover)
-    # new_pop_after_crossover_int = binaryPopulationToInt(new_pop_after_crossover, gray_coded=True)
-    # print("New Population After Crossover Integer:", new_pop_after_crossover_int)
-    new_pop_after_mutation = mutation(function_num, new_pop_after_crossover, 0.01)
-    print("New Population After Mutation:", new_pop_after_mutation)
-    # new_pop_after_mutation_int = binaryPopulationToInt(new_pop_after_mutation, gray_coded=True)
-    # print("New Population After Mutation Integer:", new_pop_after_mutation_int)
+            # repair after mutation
+            pop = repair(function_num, new_pop_after_mutation)
 
-    # repair after mutation
-    pop = repair(function_num, new_pop_after_mutation)
-
-plt.title("Fitness")
-plt.plot(generations, best_fitnesses, color="red")
-
-plt.show()
+        plt.title("Fitness of function number : {}".format(function_num))
+        plt.plot(generations, best_fitnesses, color="red")
+        plt.show()
